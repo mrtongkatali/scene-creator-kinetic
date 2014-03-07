@@ -1,0 +1,521 @@
+
+
+
+<style>
+    #container
+{
+   border: 1px solid #aaa;
+   -moz-box-shadow: 3px 3px 8px #222;
+   -webkit-box-shadow: 3px 3px 8px #222;
+   box-shadow: 3px 3px 8px #222;
+   width: 476px;
+   height: 308px;
+    padding-left: 0;
+    padding-right: 0;
+    margin-left: auto;
+    margin-right: auto;
+    display: block;   
+}
+</style>
+
+
+
+
+
+<div id="container"></div>    
+<button id="addGrid">Add Grid</button>
+<button id="removeGrid">Remove Grid</button>
+
+
+<script src="assets/js/jquery-1.7.1.min.js"></script>
+<script src="assets/js/kinetic-v5.0.1.min.js"></script>
+<script>
+var moving;
+var height_mm = 55;
+var width_mm = 85;
+selectedGroup = new Kinetic.Shape({name:'emptyNode'});
+
+var sources = new Array();
+
+sources[0] = {
+ path: 'http://www.html5canvastutorials.com/demos/assets/darth-vader.jpg',
+    width: 93,
+    height: 104, 
+ x: 300,
+ y: 55,
+ type: 'N' };
+
+sources[1] = {
+            path: 'http://www.html5canvastutorials.com/demos/assets/yoda.jpg',
+            x: 200,
+            y: 55,
+            width: 93,
+            height: 104,
+            type: 'N'};
+
+var CELL_SIZE = $('#container').width()/85,
+    w = width_mm,
+    h = height_mm,
+    W = w * CELL_SIZE,
+    H = h * CELL_SIZE;
+
+var $d = jQuery.noConflict();
+$d("body").on('click','#addGrid',function(){
+  make_grid();
+});
+      
+var make_grid = function() {
+    var grid = new Kinetic.Layer();
+    var r = new Kinetic.Rect({
+        x: 0,
+        y: 0,
+        width: W,
+        height: H,
+        fill: 'transparent'
+    });
+    grid.add(r);
+    for (i = 0; i < w + 1; i++) {
+        var I = i * CELL_SIZE;
+        var l = new Kinetic.Line({
+            stroke: "black",
+            points: [I, 0, I, H]
+        });
+        grid.add(l);
+    }
+
+    for (j = 0; j < h + 1; j++) {
+        var J = j * CELL_SIZE;
+        var l2 = new Kinetic.Line({
+            stroke: "black",
+            points: [0, J, W, J]
+        });
+        grid.add(l2);
+    }
+    stage.add(grid);      
+};
+
+// X and Y positions must be 5mm away from each edge (safe area)
+// safe area:
+var min_x = min_y = ($d('#container').width()/width_mm) * 5;
+var max_x = $d('#container').width() - min_x;
+var max_y = $d('#container').height() - min_y;
+
+// max safe area width/height
+var max_width = max_x - min_x;
+var max_height = max_y - min_y;
+
+function update(group, activeHandle) {
+    var topLeft = group.get(".topLeft")[0],
+        topRight = group.get(".topRight")[0],
+        bottomRight = group.get(".bottomRight")[0],
+        bottomLeft = group.get(".bottomLeft")[0],
+        image = group.get(".image")[0],
+        activeHandleName = activeHandle.getName(),
+        newWidth,
+        newHeight,
+        imageX,
+        imageY;
+    
+    // Update the positions of handles during drag.
+    // This needs to happen so the dimension calculation can use the
+    // handle positions to determine the new width/height.
+    switch (activeHandleName) {
+        case "topLeft":
+            topRight.setY(activeHandle.getY());
+            bottomLeft.setX(activeHandle.getX());
+            break;
+        case "topRight":
+            topLeft.setY(activeHandle.getY());
+            bottomRight.setX(activeHandle.getX());
+            break;
+        case "bottomRight":
+            bottomLeft.setY(activeHandle.getY());
+            topRight.setX(activeHandle.getX());
+            break;
+        case "bottomLeft":
+            bottomRight.setY(activeHandle.getY());
+            topLeft.setX(activeHandle.getX());
+            break;
+    }
+
+    if(topLeft.getX() < min_x) {
+        topLeft.setX(min_x);       
+    }
+    if(topLeft.getY() < min_y) {
+        topLeft.setY(min_y);       
+    }
+   
+    if(topRight.getX() > max_x) {
+        topRight.setX(max_x);       
+    }
+    if(topRight.getY() < min_y) {
+        topRight.setY(min_y);       
+    }    
+
+    if(bottomLeft.getX() < min_x) {
+        bottomLeft.setX(min_x);       
+    }
+    if(bottomLeft.getY() > max_y) {
+        bottomLeft.setY(max_y);       
+    }     
+
+    if(bottomRight.getX() > max_x) {
+        bottomRight.setX(max_x);       
+    }
+    if(bottomRight.getY() > max_y) {
+        bottomRight.setY(max_y);       
+    }   
+
+    // enforces a minimum size
+    if(topRight.getX() < topLeft.getX()+10) {
+        topRight.setX(topLeft.getX()+10);
+    }
+    if(bottomRight.getX() < topLeft.getX()+10) {
+        bottomRight.setX(topLeft.getX()+10);
+    }
+    if(bottomRight.getY() < topLeft.getY()+10) {
+        bottomRight.setY(topLeft.getY()+10);
+    }
+    if(bottomLeft.getY() < topLeft.getY()+10) {
+        bottomLeft.setY(topLeft.getY()+10);
+    }      
+ 
+    
+    // Calculate new dimensions. Height is simply the dy of the handles.
+    // Width is increased/decreased by a factor of how much the height changed.
+    newHeight = bottomLeft.getY() - topLeft.getY();
+    newWidth = image.getWidth() * newHeight / image.getHeight();
+
+    image.setPosition(0,0);
+    imageX = imageY = 0;
+
+    // Update handle positions to reflect new image dimensions
+    topLeft.setPosition(imageX, imageY);
+    topRight.setPosition(imageX + newWidth, imageY);
+    bottomRight.setPosition(imageX + newWidth, imageY + newHeight);
+    bottomLeft.setPosition(imageX, imageY + newHeight);
+
+    // Set the image's size to the newly calculated dimensions
+    if(newWidth && newHeight) {
+        image.setSize(Math.abs(newWidth), Math.abs(newHeight));
+    }
+
+  }
+  function addAnchor(group, x, y, name) {
+    var stage = group.getStage();
+    var layer = group.getLayer();
+    var anchor = new Kinetic.Circle({
+      x: x,
+      y: y,
+      stroke: "#666",
+      fill: "#ddd",
+      strokeWidth: 2,
+      radius: 8,
+      name: name,
+      draggable: true
+    });
+
+    anchor.on("dragmove", function() {
+      update(group, this);
+      layer.draw();
+    });
+    anchor.on("mousedown touchstart", function() {
+      group.setDraggable(false);
+      this.moveToTop();
+    });
+    anchor.on("dragend", function() {   
+      group.setDraggable(true);
+      layer.draw();    
+    });
+    // add hover styling
+    anchor.on("mouseover", function() {
+      var layer = this.getLayer();
+      document.body.style.cursor = "pointer";
+      this.setStrokeWidth(4);
+      layer.draw();
+    });
+    anchor.on("mouseout", function() {
+      var layer = this.getLayer();
+      document.body.style.cursor = "default";
+      this.setStrokeWidth(2);
+      layer.draw();
+    });
+    
+    group.add(anchor);
+    anchor.hide();    
+  }
+
+  function loadNewImage(i, callback) {
+        var images = {};
+        var loadedImages = sources.length-1;
+        var numImages = sources.length;
+
+        images = new Image();
+        images.onload = function() {
+          if(++loadedImages >= numImages) {
+            callback(i, images);
+          }
+        };
+        images.src = sources[i].path;
+    }
+  
+  function replaceImage(i) {
+      
+    // get the image object from the selected group
+    var imageObjects = selectedGroup.get(".image");
+    var imageObject=imageObjects.toArray()[0];
+
+    var newImage = new Image();
+    imageObject.onload = function() {
+        var newImage = new Kinetic.Image({
+            id: i,
+            image: imageObject,
+            x: 0,
+            y: 0,
+            width: sources[i].width,
+            height: sources[i].height,
+            name: 'image',
+            stroke: 'red',
+            strokeWidth: 2,
+            strokeEnabled: false        
+          });
+    };
+    newImage.src = sources[i].path;
+    // keep the Kinetic.Image object
+    // but replace its image
+    imageObject.setImage(newImage);
+  }  
+      
+function loadImages(sources, callback) {
+    var images = {};
+    var loadedImages = 0;
+    var numImages = 0;
+    // get num of sources
+    numImages = sources.length; 
+
+    for ( var i = 0; i < sources.length; i++) 
+    {
+        if(sources[i] !== undefined)
+        {
+            images[i] = new Image();
+            images[i].onload = function() {
+              if(++loadedImages >= numImages) {
+                callback(images);
+              }
+            };
+            images[i].src = sources[i].path;
+        }
+    }       
+}
+var stage = new Kinetic.Stage({
+    container: 'container',
+    width: 476,
+    height: 308
+  }); 
+
+
+var layer;
+
+function addGroup(i, image)
+{
+    var group = new Kinetic.Group({
+        id: i,
+        x: sources[i].x,
+        y: sources[i].y,
+        draggable: true,   
+        name: i,                            
+        dragBoundFunc: function(pos) {                      
+    
+            var img = this.get(".image")[0];
+            var picHeight = img.getHeight();
+            
+            var newY = pos.y < min_y ? min_y : pos.y;
+    
+            // the max y position is actually calculated by offsetting
+            // the picture by it's height
+            var offsetPosY = max_y - picHeight;
+             
+            newY = newY > offsetPosY ? offsetPosY : newY;
+    
+            var picWidth = img.getWidth();
+            var offsetPosX= max_x - picWidth;
+            
+            var newX = pos.x < min_x ? min_x : pos.x;
+            newX = newX > offsetPosX ? offsetPosX : newX;
+    
+            var i = img.getId();
+            if(i == 0)
+            {
+                $d('#darth_x').val(newX);
+                $d('#darth_y').val(newY);
+            }
+    
+            if(i == 1)
+            {
+                $d('#text_x').val(newX);
+                $d('#text_y').val(newY);                    
+            }                    
+            
+            return {
+              x: newX,
+              y: newY
+            };
+          }                 
+      });
+      layer.add(group);              
+    var newImage = new Kinetic.Image({
+        id: i,
+        image: image,
+        x: 0,
+        y: 0,
+        width: sources[i].width,
+        height: sources[i].height,
+        name: 'image',
+        stroke: 'red',
+        strokeWidth: 2,
+        strokeEnabled: false        
+      });
+    group.add(newImage);
+    if(sources[i].type == 'N')
+    {
+        // draw anchors for images only
+        addAnchor(group, 0, 0, "topLeft");
+        addAnchor(group, sources[i].width, 0, "topRight");
+        addAnchor(group, sources[i].width, sources[i].height, "bottomRight");
+        addAnchor(group, 0, sources[i].height, "bottomLeft");       
+    }
+    
+    group.on('mouseover', function(evt) {
+        var targetNode = evt.targetNode;
+        document.body.style.cursor = 'pointer'; 
+        targetNode.enableStroke();
+        layer.draw();
+      });
+    group.on('mouseout', function(evt) {
+        var targetNode = evt.targetNode;
+        document.body.style.cursor = 'default';  
+        targetNode.disableStroke();
+        layer.draw();
+      });
+      
+    group.on("dragstart", function() {
+        this.moveToTop();
+      });
+    layer.draw();     
+}
+
+  function initStage(images) {
+    layer = new Kinetic.Layer();
+
+    var bg = new Kinetic.Rect({
+        width: stage.getWidth(),
+        height: stage.getHeight(),
+        x: 0,
+        y: 0
+    });
+
+    layer.add(bg);
+
+    layer.on('mousedown', function (e) {
+        moving = false;       
+    });
+
+    layer.on('mousemove', function () {
+        moving = true;
+    });    
+    
+    layer.on('click', function (e) {
+        var node = e.targetNode;
+        select(node);
+    });
+    
+    for ( var i = 0; i < sources.length; i++) 
+    {
+        if(sources[i] !== undefined)
+        {
+            addGroup(i, images[i]);                        
+        }
+    }       
+    
+    var boundary = new Kinetic.Layer();
+    var rect = new Kinetic.Rect({
+        x: min_x,
+        y: min_y,
+        width: max_x - min_x,
+        height: max_y - min_y,
+        fill: 'transparent',
+        stroke: 'black',
+        strokeWidth: 1
+      });
+
+      // add the shape to the layer
+      boundary.add(rect);       
+      stage.add(boundary);      
+      stage.add(layer);
+
+      function select(node) {
+          var selectedId = node.parent.getId();
+          if(selectedId != selectedGroup.getName())    
+          {      
+              deselect();          
+              selectedGroup = node.parent;     
+              $d('#img').val(selectedGroup.getName());      
+
+              var source = sources[selectedGroup.getName()];
+              if(source.type == 'Y' && source !== undefined)
+              { // text type, so populate                 
+                  $d("#text").val(source.text);               
+                  $d("#fontId").val( source.fontId ).attr('selected',true);
+                  $d("#fontSize").val( source.fontSize ).attr('selected',true);
+              }
+              else
+              {
+                  $d("#text").val();
+                  if (node.parent.nodeType = 'Kinetic.Group') {
+                      var children = node.parent.children;
+                      for (i = 1; i < children.length; i++) {
+                          if (children[i].getName() == 'topLeft' ||
+                              children[i].getName() == 'topRight' ||
+                              children[i].getName() == 'bottomRight' ||
+                              children[i].getName() == 'bottomLeft') {
+                              children[i].show();
+                              layer.draw();
+                          }
+                      }
+                  }
+              }
+          }
+          else
+          {
+              if(!moving) {
+                  deselect();
+              }
+          }         
+      }     
+
+      function deselect() {
+          var children = layer.children;
+
+          for (i = 1; i < children.length; i++) {
+              var grandChildren = children[i].children;
+
+              if (grandChildren) {
+                  for (j = 1; j < grandChildren.length; j++) {
+                      if (grandChildren[j].getName() == 'topLeft' ||
+                          grandChildren[j].getName() == 'topRight' ||
+                          grandChildren[j].getName() == 'bottomRight' ||
+                          grandChildren[j].getName() == 'bottomLeft') {
+                          grandChildren[j].hide();
+                          layer.draw();
+                      }
+                  }
+              }
+          }
+          selectedGroup = new Kinetic.Shape({name:'emptyNode'});
+      }      
+  }
+  loadImages(sources, initStage);
+  
+              
+
+</script>

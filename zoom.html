@@ -1,0 +1,69 @@
+<div id="container"></div>
+
+
+<script src="assets/js/jquery-1.7.1.min.js"></script>
+<script src="assets/js/kinetic-v5.0.1.min.js"></script>
+
+<script>
+var ui = {
+    stage: null,
+    box: null,
+    scale: 1,
+    zoomFactor: 1.1,
+    zoom: function(event) {
+        event.preventDefault();
+        var evt = event.originalEvent,
+            mx = evt.offsetX,
+            my = evt.offsetY,
+            wheel = evt.wheelDelta / 120; //n or -n
+        var zoom = (ui.zoomFactor - (evt.wheelDelta < 0 ? 0.2 : 0));
+        var newscale = ui.scale * zoom;
+        
+        var origin = ui.box.getPosition();
+        origin.x = mx - (mx - origin.x) * zoom;
+        origin.y = my - (my - origin.y) * zoom;
+
+        ui.box.setPosition(origin.x, origin.y);
+        ui.box.setScale(newscale);
+        ui.stage.draw();
+
+        ui.scale *= zoom;
+    }
+};
+
+$(function() {
+    var width = $(document).width() - 2,
+        height = $(document).height() - 5;
+    var stage = ui.stage = new Kinetic.Stage({
+        container: 'container',
+        width: width,
+        height: height
+    });
+    var layer = new Kinetic.Layer();
+    var rectX = stage.getWidth() / 2 - 50;
+    var rectY = stage.getHeight() / 2 - 25;
+
+    var box = ui.box = new Kinetic.Circle({
+        x: 100,
+        y: 100,
+        radius: 50,
+        fill: '#00D200',
+        stroke: 'black',
+        strokeWidth: 2,
+        draggable: true
+    });
+    
+    // add cursor styling
+    box.on('mouseover', function() {
+        document.body.style.cursor = 'pointer';
+    });
+    box.on('mouseout', function() {
+        document.body.style.cursor = 'default';
+    });
+
+    layer.add(box);
+    stage.add(layer);
+
+    $(stage.content).on('mousewheel', ui.zoom);
+});
+</script>

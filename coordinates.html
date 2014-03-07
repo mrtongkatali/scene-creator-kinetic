@@ -1,0 +1,83 @@
+<style>
+    
+</style>
+
+<h1>Drag Bound</h1>
+
+<div id="container" class="kinetic-canvas"></div>
+
+
+<script src="assets/js/jquery-1.7.1.min.js"></script>
+<script src="assets/js/kinetic-v5.0.1.min.js"></script>
+<script>
+var stage = new Kinetic.Stage({
+    container: 'container',
+    width: 1000,
+    height: 800,
+});
+var layer = new Kinetic.Layer();
+
+var white = new Kinetic.Rect({
+    x: 20,
+    y: 20,
+    width: 900,
+    height: 700,
+    fill: 'green',
+    stroke: 'black',
+    strokeWidth: 2,
+});
+
+var orangeGroup = new Kinetic.Group({
+    x: stage.getWidth() / 2,
+    y: 70,
+    draggable: true,
+    dragBoundFunc: function (pos) {
+        var X = pos.x;
+        var Y = pos.y;
+        if (X < minX) {
+            X = minX;
+        }
+        if (X > maxX) {
+            X = maxX;
+        }
+        if (Y < minY) {
+            Y = minY;
+        }
+        if (Y > maxY) {
+            Y = maxY;
+        }
+        return ({
+            x: X,
+            y: Y
+        });
+    }
+});
+
+var orangeText = new Kinetic.Text({
+    fontSize: 26,
+    fontFamily: 'Calibri',
+    text: 'boxed in',
+    fill: 'black',
+    padding: 10
+});
+
+var orangeRect = new Kinetic.Rect({
+    width: orangeText.getWidth(),
+    height: orangeText.getHeight(),
+    fill: 'orange',
+    stroke: 'blue',
+    strokeWidth: 4
+});
+
+orangeGroup.add(orangeRect).add(orangeText);
+layer.add(white);
+layer.add(orangeGroup);
+stage.add(layer);
+
+// pre-calc some bounds so dragBoundFunc has less calc's to do
+var height = orangeRect.getHeight();
+var minX = white.getX();
+var maxX = white.getX() + white.getWidth() - orangeRect.getWidth();
+var minY = white.getY();
+var maxY = white.getY() + white.getHeight() - orangeRect.getHeight();
+</script>

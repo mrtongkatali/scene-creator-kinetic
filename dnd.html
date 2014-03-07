@@ -1,0 +1,92 @@
+<style>
+    img.draggable {cursor: move;}
+    div.kinetic-canvas {border-style:solid;border-width:5px;}
+    div.drag-on {border-style:solid;border-width:5px; border-color: green;}
+</style>
+
+<h1>Test</h1>
+
+<img class="draggable" id="yoda" src="https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcR2qumkXxCxWayaQLDmkMwPNRJ1KMZUfUuH3enxemWMtkQfYMvKmA"></img>
+Drag to box:
+<div id="cantainer" class="kinetic-canvas"></div>
+
+
+<script src="assets/js/jquery-1.7.1.min.js"></script>
+<script src="assets/js/kinetic-v5.0.1.min.js"></script>
+<script>
+	window.onload = function(){
+        var stage = new Kinetic.Stage({
+            container : "cantainer",
+            width : 1024,
+            height : 768
+        });
+        
+        var layer = new Kinetic.Layer();
+        stage.add(layer);
+        var con = stage.getContainer();    
+        var dragSrcEl = null;
+
+        $('#yoda').on('dragstart', function(e) {
+            dragSrcEl = this;
+        });
+        
+
+        var initX;
+        var initY;
+        con.addEventListener('dragover',function(e){
+            e.preventDefault(); //@important
+
+            initX = e.clientX;
+            initY = e.clientY;
+            drag_mode_on();
+        });
+
+    
+        //insert image to stage
+        con.addEventListener('drop',function(e){
+            drag_mode_off();
+            var image = new Kinetic.Image({
+               draggable : true,
+               x: initX-200,
+               y: initY-250,
+            });
+                layer.add(image);
+
+            imageObj = new Image();
+            imageObj.src = dragSrcEl.src;
+
+            imageObj.onload = function(){
+                image.setImage(imageObj);
+                image.draw();
+                layer.draw()
+            };
+
+            image.on('mouseover', function() {
+                document.body.style.cursor = 'move';
+            });
+
+            image.on('mouseout', function() {
+                document.body.style.cursor = 'default';
+            });
+
+            image.on('dragstart', function () {
+                drag_mode_on();
+            });
+
+            image.on('dragend', function () {
+                drag_mode_off();
+            });
+        });
+    }
+
+    function drag_mode_on() {
+        $('#cantainer').removeClass('kinetic-canvas');
+        $('#cantainer').addClass('drag-on');
+    }
+
+    function drag_mode_off() {
+        $('#cantainer').removeClass('drag-on');
+        $('#cantainer').addClass('kinetic-canvas');
+    }
+</script>
+

@@ -1,0 +1,159 @@
+<style>
+    img.draggable, canvas {cursor: move;}
+    div.scene-creator {border-style:solid;border-width:5px;width:1024px; height: 768px; margin: 0 auto;}
+    div.drag-on {border-color: green; }
+    canvas {position: relative;}
+</style>
+
+<h1>Phantom Menace</h1>
+
+<span id="action_status_wrapper"></span><br/><br/>
+<img class="draggable scene-objects" id="yoda" src="assets/img/yoda.jpg"></img>
+<img class="draggable scene-objects" id="c3po" src="assets/img/c3po.jpg"></img>
+<img class="draggable scene-objects" id="darthmaul" src="assets/img/darthmaul.jpg"></img>
+
+<a href="javascript:void(0);" onclick="javascript:setScale('up');">+ </a>
+<a href="javascript:void(0);" onclick="javascript:setScale('down');">- </a>
+
+<br/>
+<section id="graph">
+<div id="container" class="scene-creator"></div>
+</section>
+
+<script src="assets/js/jquery-1.7.1.min.js"></script>
+<script src="assets/js/kinetic-v5.0.1.min.js"></script>
+
+<script>
+
+    var drag_x;
+    var drag_y;
+
+    var stage;
+    function createCanvas() {
+        stage = new Kinetic.Stage({
+            container : "container",
+            width : 1024,
+            height : 768,
+            draggable: true
+        });
+    }
+
+    var layer, container, dragSrcEl ;
+    function initDraggableObject() {
+        layer = new Kinetic.Layer();
+        stage.add(layer);
+
+        container = stage.getContainer();
+        dragSrcEl = null;
+    }
+</script>
+<script>
+	window.onload = function(){
+
+        createCanvas();
+        initDraggableObject(); 
+
+        $('.scene-objects').on('dragstart', function(e) {
+            dragSrcEl = this;
+        });
+
+        $('#container').on('mousemove', function(e) {
+            var offsetX = e.offsetX || e.screenX,
+                offsetY = e.offsetY || e.screenY;
+
+            initX = offsetX;
+            initY = offsetY;
+
+            //$('#action_status_wrapper').html('position mouse on canvas: '+'x: ' + e.screenX + ', y: ' +  e.screenY);
+        });
+
+        container.addEventListener('dragover',function(e){
+            e.preventDefault(); //@important
+            drag_mode_on();
+        });
+
+        // next step, research groupd and dragBoundFunc
+
+        //insert image to stage
+        container.addEventListener('drop',function(e){
+            drag_mode_off();
+            var image = new Kinetic.Image({
+               draggable : true,
+               x: drag_x || (1024 / 2),
+               y: drag_y || (350 / 2),
+            });
+            
+            layer.add(image);
+
+            imageObj = new Image();
+            imageObj.src = dragSrcEl.src;
+
+            imageObj.onload = function(){
+                image.setImage(imageObj);
+                image.draw();
+
+                layer.setScale(3);
+                layer.draw();
+            };
+
+            image.on('mouseover', function() {
+                document.body.style.cursor = 'move';
+            });
+
+            image.on('mouseout', function() {
+                document.body.style.cursor = 'default';
+            });
+
+            image.on('dragstart', function () {
+                //console.log(image.getPosition().x);
+                $('#action_status_wrapper').html(image.getPosition().x + ", " + image.getPosition().y);
+                drag_mode_on();
+            });
+
+            image.on('dragend', function () {
+                //alert(image.getPosition().x + " - " + image.getPosition().y);
+                drag_mode_off();
+            });
+        });
+
+        stage.on('dragstart',function(e) {
+            var offsetX = e.offsetX || e.layerX,
+                offsetY = e.offsetY || e.layerY;
+
+            initX = offsetX;
+            initY = offsetY;
+            
+            //$('#action_status_wrapper').html("panning started : mouse first clicked on : " + offsetX + ", " + offsetY);
+        });
+
+        stage.on('dragend',function(e) {
+            //alert("new coordinates : " + e.screenX + " , " + e.screenY);
+
+            $('#action_status_wrapper').html("panning end");
+        }); 
+    }
+
+
+    function drag_mode_on() {
+        $('#container').addClass('drag-on');
+    }
+
+    function drag_mode_off() {
+        $('#container').removeClass('drag-on');
+    }
+</script>
+
+
+<script>
+var scale = 0.1;
+function setScale(type) {
+    if(type == "up") {
+        scale+=0.1;
+    } else {
+        scale-=0.1;
+    }
+alert(scale);
+    layer.setScale(scale);
+    layer.draw();
+}
+</script>

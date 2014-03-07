@@ -1,0 +1,25 @@
+http://stackoverflow.com/questions/7025437/addeventlistener-in-jquery
+http://jsfiddle.net/lavrton/n4w44/
+
+http://kineticjs.com/docs/Kinetic.Image.html
+
+http://www.html5canvastutorials.com/labs/html5-canvas-drag-and-drop-resize-and-invert-images/
+
+http://stackoverflow.com/questions/18777524/ability-to-freely-transform-kineticjs-objects-like-fabricjs
+
+
+
+Add DragBound
+
+http://stackoverflow.com/questions/15854001/kineticjs-dragboundfunc-for-a-rect-in-a-rect/15865422#15865422
+http://jsfiddle.net/m1erickson/n5xMs/
+
+
+
+
+
+Scaling
+
+http://codepen.io/netgfx/pen/CKFLu
+http://jsfiddle.net/FnwS5/78/
+http://stackoverflow.com/questions/12372475/scaling-to-a-fixed-point-in-kineticjs
