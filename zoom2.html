@@ -1,0 +1,52 @@
+<style>
+    #content {
+        height: 300px;
+    }
+</style>
+
+<a href="javascript:void(0);" onclick="javascript:setScale();">Test</a>
+<div id="container"></div>
+<div id="message"></div>
+
+<script src="assets/js/jquery-1.7.1.min.js"></script>
+<script src="assets/js/kinetic-v5.0.1.min.js"></script>
+
+<script>
+    var stage = new Kinetic.Stage({
+    container : 'container',
+    width: 300,
+    height: 300
+});
+
+var layer = new Kinetic.Layer({
+    width: 300,
+    height: 300
+});
+
+var circle = new Kinetic.Circle({
+        x: 150,
+        y: 150,
+        radius: 30,
+        fill: 'green',
+        
+    });
+
+layer.add(circle);
+
+stage.add(layer);
+
+$('#message').append( 'width before scale: ' + layer.getWidth() + "</br>");
+
+layer.setScale(0.9,1);
+layer.draw();
+
+$('#message').append('width after scale: ' + layer.getWidth());
+
+var scale = 1;
+function setScale() {
+    scale += 0.9;
+    circle.setScale(scale);
+    layer.draw();
+}
+
+</script>
