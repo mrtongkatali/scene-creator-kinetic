@@ -90,10 +90,9 @@
 
             imageObj.onload = function(){
                 image.setImage(imageObj);
-                image.draw();
-
-                layer.setScale(3);
+                layer.add(image);
                 layer.draw();
+                
             };
 
             image.on('mouseover', function() {
@@ -152,7 +151,7 @@ function setScale(type) {
     } else {
         scale-=0.1;
     }
-alert(scale);
+    console.log(layer);
     layer.setScale(scale);
     layer.draw();
 }
